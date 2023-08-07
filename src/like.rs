@@ -57,7 +57,7 @@ impl LikeDB {
     }
 }
 
-fn like_lists(_blog_id: Uuid, conn: &mut DBPooledConnection) -> Result<Likes, Error> {
+pub fn like_lists(_blog_id: Uuid, conn: &mut DBPooledConnection) -> Result<Likes, Error> {
     use crate::schema::likes::dsl::*;
 
     let _likes: Vec<LikeDB> = match likes
@@ -107,7 +107,7 @@ fn remove_like(_blog_id: Uuid, conn: &mut DBPooledConnection) -> Result<(), Erro
 
     let res = diesel::delete(likes.filter(id.eq(like_id))).execute(conn);
 
-    match (res) {
+    match res {
         Ok(_) => Ok(()),
         Err(err) => Err(err),
     }

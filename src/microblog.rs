@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use uuid::Uuid;
 
-use crate::like::Like;
+use crate::like::{like_lists, Like};
 use crate::response::Response;
 use crate::{DBPool, DBPooledConnection};
 
@@ -44,6 +44,15 @@ impl MicroBlog {
             id: id,
             blog_message: self.blog_message.clone(),
             created_at: Utc::now().naive_utc(),
+        }
+    }
+
+    pub fn add_likes(&self, likes: Vec<Like>) -> Self {
+        MicroBlog {
+            id: self.id.clone(),
+            blog_message: self.blog_message.clone(),
+            created_at: self.created_at,
+            likes: likes,
         }
     }
 }
@@ -140,24 +149,27 @@ fn delete_blog_by_uuid(_id: Uuid, conn: &mut DBPooledConnection) -> Result<(), E
 #[get("/blogs")]
 async fn blogs(pool: Data<DBPool>) -> HttpResponse {
     let mut conn = pool.get().expect("Cannot connect to pool");
-    let blogss = web::block(move || list_blogs(50, &mut conn))
+    let mut blogss = web::block(move || list_blogs(50, &mut conn))
         .await
         .unwrap()
         .unwrap();
 
-    // let mut conn = pool.get().expect("Cannot connect to pool");
+    let mut conn = pool.get().expect("Cannot connect to pool");
 
-    // let blogs = MicroBlogs {
-    //     results: blogss.results.iter_mut().map(|b| {
-
-    //         let likes = list_likes(Uuid::from_str(b.id.as_str()).unwrap(), &mut conn).unwrap();
-    //         b.add_likes(likes.results)
-    //     })
-    // }
+    let blogs = MicroBlogs {
+        results: blogss
+            .results
+            .iter_mut()
+            .map(|b| {
+                let likes = like_lists(Uuid::from_str(b.id.as_str()).unwrap(), &mut conn).unwrap();
+                b.add_likes(likes.results)
+            })
+            .collect::<Vec<MicroBlog>>(),
+    };
 
     HttpResponse::Ok()
         .content_type("application/json")
-        .json(blogss)
+        .json(blogs)
 }
 
 #[post("/blogs")]
