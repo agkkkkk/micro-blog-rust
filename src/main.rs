@@ -9,6 +9,8 @@ mod like;
 mod microblog;
 mod response;
 mod schema;
+mod user;
+mod validation;
 
 pub type DBPool = Pool<ConnectionManager<PgConnection>>;
 pub type DBPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -38,6 +40,7 @@ async fn main() -> Result<()> {
             .service(like::list)
             .service(like::like_blog)
             .service(like::dislike_blog)
+            .service(user::register)
     })
     .bind("127.0.0.1:8000")?
     .run()

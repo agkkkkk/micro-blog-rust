@@ -194,7 +194,7 @@ async fn get_blog(path: Path<(String,)>, pool: Data<DBPool>) -> HttpResponse {
     let mut conn = pool.get().expect("Cannot connect to DB pool");
 
     let (id,): (String,) = path.into_inner();
-    println!("{}", id);
+    // println!("{}", id);
 
     let blog =
         web::block(move || get_blog_by_uuid(Uuid::from_str(id.as_str()).unwrap(), &mut conn))
