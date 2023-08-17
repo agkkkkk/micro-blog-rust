@@ -1,2 +1,4 @@
 /target
 .env
+rsa_private_key
+rsa_public_key

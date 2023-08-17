@@ -5,10 +5,12 @@ use dotenv::dotenv;
 use r2d2::{Pool, PooledConnection};
 use std::{env, io::Result};
 
+mod jwtAuth;
 mod like;
 mod microblog;
 mod response;
 mod schema;
+mod token;
 mod user;
 mod validation;
 
@@ -41,6 +43,7 @@ async fn main() -> Result<()> {
             .service(like::like_blog)
             .service(like::dislike_blog)
             .service(user::register)
+            .service(user::login)
     })
     .bind("127.0.0.1:8000")?
     .run()
