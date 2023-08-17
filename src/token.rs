@@ -52,3 +52,26 @@ pub fn generate_jwt_token(user_id: String, ttl: i64, private_key: String) -> Res
 
     Ok(token)
 }
+
+pub fn verify_jwt_token(token: &str, public_key: String) -> Result<Token, Error> {
+    let bytes_public_key = general_purpose::STANDARD.decode(public_key).unwrap();
+    let decoded_public_key = String::from_utf8(bytes_public_key).unwrap();
+
+    let validation_algo = Validation::new(Algorithm::RS256);
+
+    let decoded_token = jsonwebtoken::decode::<TokenClaims>(
+        token,
+        &DecodingKey::from_rsa_pem(decoded_public_key.as_bytes())?,
+        &validation_algo,
+    )?;
+
+    let user = decoded_token.claims.user;
+    let token_uuid = Uuid::from_str(decoded_token.claims.token_uuid.as_str()).unwrap();
+
+    Ok(Token {
+        access_token: None,
+        user: user,
+        token_uuid: token_uuid,
+        expires_in: None,
+    })
+}
